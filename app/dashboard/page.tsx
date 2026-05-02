@@ -30,7 +30,6 @@ export default function Dashboard() {
   async function carregarDados() {
     setErro("");
 
-    // 🔹 CUSTOS (tem data)
     let queryCustos = supabase
       .from("custos_cultivo")
       .select("valor, cultura, data_custo");
@@ -45,7 +44,6 @@ export default function Dashboard() {
       return;
     }
 
-    // 🔹 PEDIDOS (SEM data)
     const { data: pedidosData, error: erroPedidos } = await supabase
       .from("pedidos")
       .select("valor_total, cultura");
@@ -55,17 +53,14 @@ export default function Dashboard() {
       return;
     }
 
-    // 🔹 TOTAL CUSTOS
     const totalCustos =
       custosData?.reduce((acc, item) => acc + Number(item.valor ?? 0), 0) ?? 0;
 
-    // 🔹 TOTAL RECEITA
     const totalReceita =
       pedidosData?.reduce((acc, item: any) => {
         return acc + Number(item.valor_total ?? 0);
       }, 0) ?? 0;
 
-    // 🔹 AGRUPAMENTO CUSTOS POR CULTURA
     const mapaCustos: any = {};
 
     custosData?.forEach((item) => {
@@ -79,17 +74,14 @@ export default function Dashboard() {
       valor: mapaCustos[cultura],
     }));
 
-    // 🔹 AGRUPAMENTO RECEITA POR CULTURA
     const mapaReceita: any = {};
 
     pedidosData?.forEach((item: any) => {
       const cultura = item.cultura || "Sem cultura";
-
       mapaReceita[cultura] =
         (mapaReceita[cultura] ?? 0) + Number(item.valor_total ?? 0);
     });
 
-    // 🔹 LUCRO POR CULTURA
     const culturas = new Set([
       ...Object.keys(mapaReceita),
       ...Object.keys(mapaCustos),
@@ -110,7 +102,10 @@ export default function Dashboard() {
   function limparFiltro() {
     setDataInicio("");
     setDataFim("");
-    setTimeout(() => carregarDados(), 100);
+
+    setTimeout(() => {
+      carregarDados();
+    }, 100);
   }
 
   function formatar(valor: number) {
@@ -183,12 +178,12 @@ export default function Dashboard() {
         <h2>Receita x Custos x Lucro</h2>
 
         <div style={{ width: "100%", height: "300px" }}>
-          <ResponsiveContainer>
+          <ResponsiveContainer width="100%" height={300}>
             <BarChart data={dadosGrafico}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="nome" />
               <YAxis />
-              <Tooltip formatter={(value: number) => formatar(Number(value))} />
+              <Tooltip formatter={(value) => formatar(Number(value ?? 0))} />
               <Bar dataKey="valor" />
             </BarChart>
           </ResponsiveContainer>
@@ -199,12 +194,12 @@ export default function Dashboard() {
         <h2>Custos por Cultura</h2>
 
         <div style={{ width: "100%", height: "300px" }}>
-          <ResponsiveContainer>
+          <ResponsiveContainer width="100%" height={300}>
             <BarChart data={dadosCultura}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="nome" />
               <YAxis />
-              <Tooltip formatter={(value: number) => formatar(Number(value))} />
+              <Tooltip formatter={(value) => formatar(Number(value ?? 0))} />
               <Bar dataKey="valor" />
             </BarChart>
           </ResponsiveContainer>
@@ -215,12 +210,12 @@ export default function Dashboard() {
         <h2>Lucro por Cultura</h2>
 
         <div style={{ width: "100%", height: "300px" }}>
-          <ResponsiveContainer>
+          <ResponsiveContainer width="100%" height={300}>
             <BarChart data={lucroCultura}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="nome" />
               <YAxis />
-              <Tooltip formatter={(value: number) => formatar(Number(value))} />
+              <Tooltip formatter={(value) => formatar(Number(value ?? 0))} />
               <Bar dataKey="valor" />
             </BarChart>
           </ResponsiveContainer>

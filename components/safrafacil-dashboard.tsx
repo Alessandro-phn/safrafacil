@@ -340,23 +340,25 @@ export default function SafraFacilDashboard() {
           </div>
 
           <nav className="space-y-2 text-sm">
-            {[
-              [BarChart3, "Dashboard"],
-              [Package, "Produtos"],
-              [Users, "Clientes"],
-              [ShoppingCart, "Vendas"],
-              [Wallet, "Despesas"],
-              [Tractor, "Produção"],
-            ].map(([Icon, label]) => {
-              const NavIcon = Icon as React.ComponentType<{ className?: string }>;
+            
+  {[
+  { icon: BarChart3, label: "Dashboard" },
+  { icon: Package, label: "Produtos" },
+  { icon: Users, label: "Clientes" },
+  { icon: ShoppingCart, label: "Vendas" },
+  { icon: Wallet, label: "Despesas" },
+  { icon: Tractor, label: "Produção" },
+].map((item) => {
+  const NavIcon = item.icon;
+              
 
               return (
                 <div
-                  key={label}
+                  key={item.label}
                   className="flex cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 transition hover:bg-slate-100"
                 >
                   <NavIcon className="h-4 w-4" />
-                  <span>{label}</span>
+                  <span>{item.label}</span>
                 </div>
               );
             })}

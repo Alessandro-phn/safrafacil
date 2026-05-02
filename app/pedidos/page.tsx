@@ -10,7 +10,7 @@ type PedidoItem = {
   cultura: string | null;
   produtos: {
     nome: string | null;
-  } | null;
+  }[] | null;
 };
 
 type Pedido = {
@@ -20,7 +20,7 @@ type Pedido = {
   status: string | null;
   clientes: {
     nome: string | null;
-  } | null;
+  }[] | null;
   pedido_itens: PedidoItem[];
 };
 
@@ -46,7 +46,7 @@ export default function PedidosPage() {
   async function carregarClientes() {
     const { data, error } = await supabase
       .from("clientes")
-      .select("id, nome")
+      .select("*")
       .order("nome", { ascending: true });
 
     if (error) {
@@ -98,7 +98,7 @@ export default function PedidosPage() {
       return;
     }
 
-    setPedidos((data as Pedido[]) || []);
+    setPedidos((data as unknown as Pedido[]) || []);  
   }
 
   async function salvarPedido(e: any) {
@@ -262,7 +262,7 @@ export default function PedidosPage() {
           pedidos.map((pedido) => (
             <div key={pedido.id} style={itemStyle}>
               <p>
-                <strong>Cliente:</strong> {pedido.clientes?.nome || "-"}
+                <strong>Cliente:</strong> {pedido.clientes?.[0]?.nome || "-"}
               </p>
 
               <p>
@@ -285,8 +285,7 @@ export default function PedidosPage() {
                   pedido.pedido_itens.map((item, index) => (
                     <div key={index} style={subItemStyle}>
                       <p>
-                        <strong>Produto:</strong>{" "}
-                        {item.produtos?.nome || "-"}
+                        <strong>Produto:</strong> {item.produtos?.[0]?.nome || "-"}
                       </p>
 
                       <p>

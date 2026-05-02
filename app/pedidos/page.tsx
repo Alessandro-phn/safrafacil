@@ -10,7 +10,7 @@ type PedidoItem = {
   cultura: string | null;
   produtos: {
     nome: string | null;
-  }[] | null;
+  } | null;
 };
 
 type Pedido = {
@@ -20,7 +20,7 @@ type Pedido = {
   status: string | null;
   clientes: {
     nome: string | null;
-  }[] | null;
+  } | null;
   pedido_itens: PedidoItem[];
 };
 
@@ -40,13 +40,14 @@ export default function PedidosPage() {
   }, []);
 
   async function carregarDados() {
-    await Promise.all([carregarClientes(), carregarProdutos(), carregarPedidos()]);
+    await Promise.all([carregarClientes(), carregarProdutos()]);
+    await carregarPedidos();
   }
 
   async function carregarClientes() {
     const { data, error } = await supabase
       .from("clientes")
-      .select("*")
+      .select("id, nome")
       .order("nome", { ascending: true });
 
     if (error) {
@@ -72,33 +73,78 @@ export default function PedidosPage() {
   }
 
   async function carregarPedidos() {
-    const { data, error } = await supabase
+    const { data: pedidosData, error: erroPedidos } = await supabase
       .from("pedidos")
-      .select(`
-        id,
-        valor_total,
-        data,
-        status,
-        clientes (
-          nome
-        ),
-        pedido_itens (
-          quantidade,
-          preco_unitario,
-          cultura,
-          produtos (
-            nome
-          )
-        )
-      `)
+      .select("id, cliente_id, valor_total, data, status")
       .order("id", { ascending: false });
 
-    if (error) {
-      setMensagem("Erro ao carregar pedidos: " + error.message);
+    if (erroPedidos) {
+      setMensagem("Erro ao carregar pedidos: " + erroPedidos.message);
       return;
     }
 
-    setPedidos((data as unknown as Pedido[]) || []);  
+    const { data: itensData, error: erroItens } = await supabase
+      .from("pedido_itens")
+      .select("pedido_id, produto_id, quantidade, preco_unitario, cultura");
+
+    if (erroItens) {
+      setMensagem("Erro ao carregar itens: " + erroItens.message);
+      return;
+    }
+
+    const { data: clientesData, error: erroClientes } = await supabase
+      .from("clientes")
+      .select("id, nome");
+
+    if (erroClientes) {
+      setMensagem("Erro ao carregar clientes: " + erroClientes.message);
+      return;
+    }
+
+    const { data: produtosData, error: erroProdutos } = await supabase
+      .from("produtos")
+      .select("id, nome");
+
+    if (erroProdutos) {
+      setMensagem("Erro ao carregar produtos: " + erroProdutos.message);
+      return;
+    }
+
+    const pedidosMontados: Pedido[] = (pedidosData || []).map((pedido) => {
+      const cliente = clientesData?.find(
+        (cliente) => Number(cliente.id) === Number(pedido.cliente_id)
+      );
+
+      const itensDoPedido: PedidoItem[] = (itensData || [])
+        .filter((item) => Number(item.pedido_id) === Number(pedido.id))
+        .map((item) => {
+          const produto = produtosData?.find(
+            (produto) => Number(produto.id) === Number(item.produto_id)
+          );
+
+          return {
+            quantidade: item.quantidade,
+            preco_unitario: item.preco_unitario,
+            cultura: item.cultura,
+            produtos: {
+              nome: produto?.nome || "-",
+            },
+          };
+        });
+
+      return {
+        id: pedido.id,
+        valor_total: pedido.valor_total,
+        data: pedido.data,
+        status: pedido.status,
+        clientes: {
+          nome: cliente?.nome || "-",
+        },
+        pedido_itens: itensDoPedido,
+      };
+    });
+
+    setPedidos(pedidosMontados);
   }
 
   async function salvarPedido(e: any) {
@@ -172,6 +218,8 @@ export default function PedidosPage() {
   async function excluirPedido(id: number) {
     const confirmar = confirm("Deseja excluir este pedido?");
     if (!confirmar) return;
+
+    await supabase.from("pedido_itens").delete().eq("pedido_id", id);
 
     const { error } = await supabase.from("pedidos").delete().eq("id", id);
 
@@ -262,7 +310,7 @@ export default function PedidosPage() {
           pedidos.map((pedido) => (
             <div key={pedido.id} style={itemStyle}>
               <p>
-                <strong>Cliente:</strong> {pedido.clientes?.[0]?.nome || "-"}
+                <strong>Cliente:</strong> {pedido.clientes?.nome || "-"}
               </p>
 
               <p>
@@ -285,7 +333,8 @@ export default function PedidosPage() {
                   pedido.pedido_itens.map((item, index) => (
                     <div key={index} style={subItemStyle}>
                       <p>
-                        <strong>Produto:</strong> {item.produtos?.[0]?.nome || "-"}
+                        <strong>Produto:</strong>{" "}
+                        {item.produtos?.nome || "-"}
                       </p>
 
                       <p>

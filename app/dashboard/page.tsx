@@ -30,6 +30,7 @@ export default function Dashboard() {
   async function carregarDados() {
     setErro("");
 
+    // 🔹 CUSTOS
     let queryCustos = supabase
       .from("custos_cultivo")
       .select("valor, cultura, data_custo");
@@ -44,23 +45,31 @@ export default function Dashboard() {
       return;
     }
 
-    const { data: pedidosData, error: erroPedidos } = await supabase
-      .from("pedidos")
-      .select("valor_total, cultura");
+    // 🔥 VENDAS (AGORA CORRETO)
+    const { data: itensData, error: erroItens } = await supabase
+      .from("pedido_itens")
+      .select("cultura, quantidade, preco_unitario");
 
-    if (erroPedidos) {
-      setErro("Erro ao buscar pedidos: " + erroPedidos.message);
+    if (erroItens) {
+      setErro("Erro ao buscar vendas: " + erroItens.message);
       return;
     }
 
+    // 🔹 TOTAL CUSTOS
     const totalCustos =
       custosData?.reduce((acc, item) => acc + Number(item.valor ?? 0), 0) ?? 0;
 
+    // 🔥 TOTAL RECEITA (CORRIGIDO)
     const totalReceita =
-      pedidosData?.reduce((acc, item: any) => {
-        return acc + Number(item.valor_total ?? 0);
+      itensData?.reduce((acc: number, item: any) => {
+        return (
+          acc +
+          Number(item.quantidade || 0) *
+            Number(item.preco_unitario || 0)
+        );
       }, 0) ?? 0;
 
+    // 🔹 CUSTOS POR CULTURA
     const mapaCustos: any = {};
 
     custosData?.forEach((item) => {
@@ -74,14 +83,21 @@ export default function Dashboard() {
       valor: mapaCustos[cultura],
     }));
 
+    // 🔥 RECEITA POR CULTURA (AGORA FUNCIONA LARANJA 🍊)
     const mapaReceita: any = {};
 
-    pedidosData?.forEach((item: any) => {
+    itensData?.forEach((item: any) => {
       const cultura = item.cultura || "Sem cultura";
+
+      const valor =
+        Number(item.quantidade || 0) *
+        Number(item.preco_unitario || 0);
+
       mapaReceita[cultura] =
-        (mapaReceita[cultura] ?? 0) + Number(item.valor_total ?? 0);
+        (mapaReceita[cultura] ?? 0) + valor;
     });
 
+    // 🔹 LUCRO POR CULTURA
     const culturas = new Set([
       ...Object.keys(mapaReceita),
       ...Object.keys(mapaCustos),
@@ -89,9 +105,12 @@ export default function Dashboard() {
 
     const resultadoLucro = Array.from(culturas).map((cultura) => ({
       nome: cultura,
-      valor: (mapaReceita[cultura] ?? 0) - (mapaCustos[cultura] ?? 0),
+      valor:
+        (mapaReceita[cultura] ?? 0) -
+        (mapaCustos[cultura] ?? 0),
     }));
 
+    // 🔹 SET STATES
     setReceita(totalReceita);
     setCustos(totalCustos);
     setLucro(totalReceita - totalCustos);
@@ -177,54 +196,49 @@ export default function Dashboard() {
       <section style={graficoCardStyle}>
         <h2>Receita x Custos x Lucro</h2>
 
-        <div style={{ width: "100%", height: "300px" }}>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={dadosGrafico}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="nome" />
-              <YAxis />
-              <Tooltip formatter={(value) => formatar(Number(value ?? 0))} />
-              <Bar dataKey="valor" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={dadosGrafico}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="nome" />
+            <YAxis />
+            <Tooltip formatter={(value) => formatar(Number(value))} />
+            <Bar dataKey="valor" />
+          </BarChart>
+        </ResponsiveContainer>
       </section>
 
       <section style={{ ...graficoCardStyle, marginTop: "30px" }}>
         <h2>Custos por Cultura</h2>
 
-        <div style={{ width: "100%", height: "300px" }}>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={dadosCultura}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="nome" />
-              <YAxis />
-              <Tooltip formatter={(value) => formatar(Number(value ?? 0))} />
-              <Bar dataKey="valor" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={dadosCultura}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="nome" />
+            <YAxis />
+            <Tooltip formatter={(value) => formatar(Number(value))} />
+            <Bar dataKey="valor" />
+          </BarChart>
+        </ResponsiveContainer>
       </section>
 
       <section style={{ ...graficoCardStyle, marginTop: "30px" }}>
         <h2>Lucro por Cultura</h2>
 
-        <div style={{ width: "100%", height: "300px" }}>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={lucroCultura}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="nome" />
-              <YAxis />
-              <Tooltip formatter={(value) => formatar(Number(value ?? 0))} />
-              <Bar dataKey="valor" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={lucroCultura}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="nome" />
+            <YAxis />
+            <Tooltip formatter={(value) => formatar(Number(value))} />
+            <Bar dataKey="valor" />
+          </BarChart>
+        </ResponsiveContainer>
       </section>
     </main>
   );
 }
 
+// estilos (mantidos)
 const pageStyle = {
   padding: "40px",
   fontFamily: "Arial",

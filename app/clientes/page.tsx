@@ -181,58 +181,68 @@ export default function ClientesPage() {
 }
 
 const pageStyle = {
+  marginLeft: "240px",
   padding: "40px",
   fontFamily: "Arial",
-  backgroundColor: "#f4f6f8",
+  background:
+    "linear-gradient(135deg, #071f16 0%, #123524 35%, #f4f6f8 35%, #f4f6f8 100%)",
   minHeight: "100vh",
 };
 
 const cardStyle = {
-  backgroundColor: "white",
-  padding: "24px",
-  borderRadius: "14px",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+  backgroundColor: "rgba(255,255,255,0.97)",
+  padding: "28px",
+  borderRadius: "22px",
+  boxShadow: "0 10px 28px rgba(0,0,0,0.14)",
+  border: "1px solid rgba(116,201,71,0.25)",
 };
 
 const inputStyle = {
   display: "block",
   width: "100%",
-  padding: "10px",
-  marginBottom: "10px",
-  borderRadius: "6px",
-  border: "1px solid #ccc",
+  padding: "13px",
+  marginBottom: "14px",
+  borderRadius: "12px",
+  border: "1px solid #cfd8dc",
+  fontSize: "15px",
 };
 
 const buttonStyle = {
-  padding: "10px 15px",
+  padding: "12px 18px",
   marginRight: "10px",
-  borderRadius: "6px",
+  borderRadius: "10px",
   border: "none",
-  background: "#2563eb",
+  background: "#2e7d32",
   color: "white",
   cursor: "pointer",
+  fontWeight: "bold",
 };
 
 const secondaryButtonStyle = {
-  padding: "10px 15px",
-  borderRadius: "6px",
+  padding: "12px 18px",
+  borderRadius: "10px",
   border: "1px solid #ccc",
   background: "#f5f5f5",
   cursor: "pointer",
+  fontWeight: "bold",
 };
 
 const deleteButtonStyle = {
-  padding: "10px 15px",
-  borderRadius: "6px",
+  padding: "10px 14px",
+  borderRadius: "10px",
   border: "none",
-  background: "#b91c1c",
+  background: "#c62828",
   color: "white",
   cursor: "pointer",
+  marginTop: "10px",
+  fontWeight: "bold",
 };
 
 const itemStyle = {
-  border: "1px solid #ddd",
-  padding: "15px",
-  borderRadius: "10px",
-  marginTop: "12px",
+  border: "1px solid rgba(116,201,71,0.25)",
+  padding: "18px",
+  borderRadius: "18px",
+  marginTop: "14px",
+  backgroundColor: "#ffffff",
+  boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
 };

@@ -30,7 +30,7 @@ export default function Dashboard() {
   async function carregarDados() {
     setErro("");
 
-    // 🔹 CUSTOS
+    // 🔹 BUSCA CUSTOS
     let queryCustos = supabase
       .from("custos_cultivo")
       .select("valor, cultura, data_custo");
@@ -45,13 +45,13 @@ export default function Dashboard() {
       return;
     }
 
-    // 🔥 VENDAS (AGORA CORRETO)
-    const { data: itensData, error: erroItens } = await supabase
+    // 🔥 BUSCA VENDAS
+    const { data: itensData, error: erroPedidos } = await supabase
       .from("pedido_itens")
       .select("cultura, quantidade, preco_unitario");
 
-    if (erroItens) {
-      setErro("Erro ao buscar vendas: " + erroItens.message);
+    if (erroPedidos) {
+      setErro("Erro ao buscar vendas: " + erroPedidos.message);
       return;
     }
 
@@ -59,19 +59,14 @@ export default function Dashboard() {
     const totalCustos =
       custosData?.reduce((acc, item) => acc + Number(item.valor ?? 0), 0) ?? 0;
 
-    // 🔥 TOTAL RECEITA (CORRIGIDO)
+    // 🔥 TOTAL RECEITA
     const totalReceita =
       itensData?.reduce((acc: number, item: any) => {
-        return (
-          acc +
-          Number(item.quantidade || 0) *
-            Number(item.preco_unitario || 0)
-        );
+        return acc + Number(item.quantidade || 0) * Number(item.preco_unitario || 0);
       }, 0) ?? 0;
 
-    // 🔹 CUSTOS POR CULTURA
+    // 🔹 MAPA CUSTOS
     const mapaCustos: any = {};
-
     custosData?.forEach((item) => {
       const cultura = item.cultura || "Sem cultura";
       mapaCustos[cultura] =
@@ -83,18 +78,14 @@ export default function Dashboard() {
       valor: mapaCustos[cultura],
     }));
 
-    // 🔥 RECEITA POR CULTURA (AGORA FUNCIONA LARANJA 🍊)
+    // 🔥 MAPA RECEITA
     const mapaReceita: any = {};
-
     itensData?.forEach((item: any) => {
       const cultura = item.cultura || "Sem cultura";
-
       const valor =
-        Number(item.quantidade || 0) *
-        Number(item.preco_unitario || 0);
+        Number(item.quantidade || 0) * Number(item.preco_unitario || 0);
 
-      mapaReceita[cultura] =
-        (mapaReceita[cultura] ?? 0) + valor;
+      mapaReceita[cultura] = (mapaReceita[cultura] ?? 0) + valor;
     });
 
     // 🔹 LUCRO POR CULTURA
@@ -110,7 +101,6 @@ export default function Dashboard() {
         (mapaCustos[cultura] ?? 0),
     }));
 
-    // 🔹 SET STATES
     setReceita(totalReceita);
     setCustos(totalCustos);
     setLucro(totalReceita - totalCustos);
@@ -121,10 +111,7 @@ export default function Dashboard() {
   function limparFiltro() {
     setDataInicio("");
     setDataFim("");
-
-    setTimeout(() => {
-      carregarDados();
-    }, 100);
+    carregarDados(); // 🔥 simplificado (sem timeout)
   }
 
   function formatar(valor: number) {
@@ -144,162 +131,146 @@ export default function Dashboard() {
     <main style={pageStyle}>
       <MenuSistema />
 
-      <h1 style={{ marginBottom: "30px" }}>Painel SafraFácil</h1>
-
-      {erro && <p style={{ color: "red" }}>{erro}</p>}
-
-      <section style={filtroStyle}>
-        <h2>Filtrar por período (somente custos)</h2>
-
-        <input
-          type="date"
-          value={dataInicio}
-          onChange={(e) => setDataInicio(e.target.value)}
-          style={inputStyle}
-        />
-
-        <input
-          type="date"
-          value={dataFim}
-          onChange={(e) => setDataFim(e.target.value)}
-          style={inputStyle}
-        />
-
-        <button onClick={carregarDados} style={botaoStyle}>
-          Filtrar
-        </button>
-
-        <button onClick={limparFiltro} style={botaoLimparStyle}>
-          Limpar
-        </button>
-      </section>
-
-      <section style={cardGrid}>
-        <div style={cardStyle}>
-          <h2>💰 Receita</h2>
-          <p style={valorStyle}>{formatar(receita)}</p>
-        </div>
-
-        <div style={cardStyle}>
-          <h2>💸 Custos</h2>
-          <p style={valorStyle}>{formatar(custos)}</p>
-        </div>
-
-        <div style={cardStyle}>
-          <h2>📈 Lucro</h2>
-          <p style={{ ...valorStyle, color: lucro >= 0 ? "green" : "red" }}>
-            {formatar(lucro)}
+      {/* 🔥 HERO */}
+      <section style={heroStyle}>
+        <div>
+          <p style={tagStyle}>SafraFácil Analytics</p>
+          <h1 style={titleStyle}>Painel de gestão rural</h1>
+          <p style={subtitleStyle}>
+            Transformando dados em decisões estratégicas.
           </p>
         </div>
+
+        <div style={heroCardStyle}>
+          <p style={{ margin: 0 }}>Resultado atual</p>
+          <strong style={{ fontSize: "32px", color: "#74c947" }}>
+            {formatar(lucro)}
+          </strong>
+        </div>
       </section>
 
-      <section style={graficoCardStyle}>
-        <h2>Receita x Custos x Lucro</h2>
+      {erro && <p style={erroStyle}>{erro}</p>}
 
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={dadosGrafico}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="nome" />
-            <YAxis />
-            <Tooltip formatter={(value) => formatar(Number(value))} />
-            <Bar dataKey="valor" />
-          </BarChart>
-        </ResponsiveContainer>
+      {/* 🔹 FILTRO */}
+      <section style={filtroStyle}>
+        <h2>Filtrar por período</h2>
+
+        <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} style={inputStyle}/>
+        <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} style={inputStyle}/>
+
+        <button onClick={carregarDados} style={botaoStyle}>Filtrar</button>
+        <button onClick={limparFiltro} style={botaoLimparStyle}>Limpar</button>
       </section>
 
-      <section style={{ ...graficoCardStyle, marginTop: "30px" }}>
-        <h2>Custos por Cultura</h2>
-
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={dadosCultura}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="nome" />
-            <YAxis />
-            <Tooltip formatter={(value) => formatar(Number(value))} />
-            <Bar dataKey="valor" />
-          </BarChart>
-        </ResponsiveContainer>
+      {/* 🔹 CARDS */}
+      <section style={cardGrid}>
+        <Card titulo="Receita" valor={receita} emoji="💰" />
+        <Card titulo="Custos" valor={custos} emoji="💸" />
+        <Card titulo="Lucro" valor={lucro} emoji="📈" />
       </section>
 
-      <section style={{ ...graficoCardStyle, marginTop: "30px" }}>
-        <h2>Lucro por Cultura</h2>
-
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={lucroCultura}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="nome" />
-            <YAxis />
-            <Tooltip formatter={(value) => formatar(Number(value))} />
-            <Bar dataKey="valor" />
-          </BarChart>
-        </ResponsiveContainer>
-      </section>
+      {/* 🔹 GRÁFICOS */}
+      <Grafico titulo="Receita x Custos x Lucro" dados={dadosGrafico} formatar={formatar}/>
+      <Grafico titulo="Custos por Cultura" dados={dadosCultura} formatar={formatar}/>
+      <Grafico titulo="Lucro por Cultura" dados={lucroCultura} formatar={formatar}/>
     </main>
   );
 }
 
-// estilos (mantidos)
+/* 🔹 COMPONENTES AUXILIARES */
+
+function Card({ titulo, valor, emoji }: any) {
+  return (
+    <div style={cardStyle}>
+      <span style={iconStyle}>{emoji}</span>
+      <h2>{titulo}</h2>
+      <p style={valorStyle}>
+        {valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+      </p>
+    </div>
+  );
+}
+
+function Grafico({ titulo, dados, formatar }: any) {
+  return (
+    <section style={{ ...graficoCardStyle, marginTop: "30px" }}>
+      <h2>{titulo}</h2>
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={dados}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="nome" />
+          <YAxis />
+          <Tooltip formatter={(value) => formatar(Number(value))} />
+          <Bar dataKey="valor" />
+        </BarChart>
+      </ResponsiveContainer>
+    </section>
+  );
+}
+
+/* 🔹 ESTILOS */
+
 const pageStyle = {
+  marginLeft: "240px",
   padding: "40px",
-  fontFamily: "Arial",
-  backgroundColor: "#f4f6f8",
+  background: "linear-gradient(135deg,#071f16 0%,#123524 45%,#f4f6f8 45%)",
   minHeight: "100vh",
 };
 
+const heroStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  background: "#071f16",
+  padding: "30px",
+  borderRadius: "20px",
+  color: "white",
+};
+
+const tagStyle = { color: "#74c947" };
+const titleStyle = { fontSize: "34px", margin: "10px 0" };
+const subtitleStyle = { color: "#dfffe0" };
+
+const heroCardStyle = {
+  background: "#0f2f22",
+  padding: "20px",
+  borderRadius: "12px",
+};
+
+const erroStyle = {
+  background: "#ffe5e5",
+  padding: "10px",
+  borderRadius: "8px",
+};
+
 const filtroStyle = {
-  backgroundColor: "white",
-  padding: "24px",
+  background: "white",
+  padding: "20px",
   borderRadius: "14px",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-  marginBottom: "30px",
+  marginTop: "20px",
 };
 
 const cardGrid = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
   gap: "20px",
-  marginBottom: "30px",
+  marginTop: "20px",
 };
 
 const cardStyle = {
-  backgroundColor: "white",
-  padding: "24px",
+  background: "white",
+  padding: "20px",
   borderRadius: "14px",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
 };
 
-const valorStyle = {
-  fontSize: "26px",
-  fontWeight: "bold",
-  marginTop: "10px",
-};
+const iconStyle = { fontSize: "24px" };
+const valorStyle = { fontSize: "24px", fontWeight: "bold" };
 
 const graficoCardStyle = {
-  backgroundColor: "white",
-  padding: "24px",
+  background: "white",
+  padding: "20px",
   borderRadius: "14px",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
 };
 
-const inputStyle = {
-  padding: "10px",
-  marginRight: "10px",
-  marginTop: "10px",
-};
-
-const botaoStyle = {
-  padding: "10px 18px",
-  backgroundColor: "#1976d2",
-  color: "white",
-  border: "none",
-  cursor: "pointer",
-  marginRight: "10px",
-};
-
-const botaoLimparStyle = {
-  padding: "10px 18px",
-  backgroundColor: "#777",
-  color: "white",
-  border: "none",
-  cursor: "pointer",
-};
+const inputStyle = { padding: "10px", margin: "5px" };
+const botaoStyle = { padding: "10px", background: "#2e7d32", color: "white" };
+const botaoLimparStyle = { padding: "10px", background: "#555", color: "white" };

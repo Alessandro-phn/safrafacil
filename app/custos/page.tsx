@@ -174,49 +174,59 @@ export default function CustosPage() {
 }
 
 const pageStyle = {
+  marginLeft: "240px",
   padding: "40px",
   fontFamily: "Arial",
-  backgroundColor: "#f4f6f8",
+  background:
+    "linear-gradient(135deg, #071f16 0%, #123524 35%, #f4f6f8 35%, #f4f6f8 100%)",
   minHeight: "100vh",
 };
 
 const cardStyle = {
-  backgroundColor: "white",
-  padding: "24px",
-  borderRadius: "14px",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+  backgroundColor: "rgba(255,255,255,0.97)",
+  padding: "28px",
+  borderRadius: "22px",
+  boxShadow: "0 10px 28px rgba(0,0,0,0.14)",
+  border: "1px solid rgba(116,201,71,0.25)",
 };
 
 const inputStyle = {
   display: "block",
   width: "100%",
-  padding: "10px",
-  marginBottom: "12px",
+  padding: "13px",
+  marginBottom: "14px",
+  borderRadius: "12px",
+  border: "1px solid #cfd8dc",
+  fontSize: "15px",
 };
 
 const buttonStyle = {
   width: "100%",
-  padding: "12px",
-  backgroundColor: "#1976d2",
+  padding: "14px",
+  backgroundColor: "#2e7d32",
   color: "white",
   border: "none",
-  borderRadius: "8px",
+  borderRadius: "12px",
   fontWeight: "bold",
   cursor: "pointer",
 };
 
 const deleteButtonStyle = {
-  padding: "8px 12px",
+  padding: "10px 14px",
   backgroundColor: "#c62828",
   color: "white",
   border: "none",
-  borderRadius: "6px",
+  borderRadius: "10px",
   cursor: "pointer",
+  marginTop: "12px",
+  fontWeight: "bold",
 };
 
 const itemStyle = {
-  border: "1px solid #ddd",
-  borderRadius: "10px",
-  padding: "16px",
-  marginTop: "12px",
+  border: "1px solid rgba(116,201,71,0.25)",
+  borderRadius: "18px",
+  padding: "18px",
+  marginTop: "14px",
+  backgroundColor: "#ffffff",
+  boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
 };
